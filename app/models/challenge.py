@@ -17,11 +17,11 @@ class Challenge(db.Model):
     starter_code_javascript = db.Column(db.Text)
     is_practice = db.Column(db.Boolean, default=True, nullable=False)
     points_reward = db.Column(db.Integer, nullable=False)
-    time_limit = db.Column(db.Integer, default=5000)   
-    memory_limit = db.Column(db.Integer, default=128)   
+    time_limit = db.Column(db.Integer, default=5000) 
+    memory_limit = db.Column(db.Integer, default=128) 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
+    # table relationships
     test_cases = db.relationship(
         "TestCase",
         back_populates="challenge",

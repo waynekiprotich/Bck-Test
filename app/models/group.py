@@ -8,11 +8,11 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    invite_code = db.Column(db.String(12), unique=True, nullable=False)
+    invite_code = db.Column(db.String(12), unique=True, nullable=False)  # used for shareable join links
     admin_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
+    # relations
     admin = db.relationship("User", foreign_keys=[admin_id], back_populates="created_groups")
     members = db.relationship(
         "GroupMember",
@@ -27,13 +27,13 @@ class Group(db.Model):
 class GroupMember(db.Model):
     __tablename__ = "group_members"
 
+    # using a composite primary key for the table
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
     group_id = db.Column(db.Integer, db.ForeignKey("groups.id"), primary_key=True)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships back to both sides
     user = db.relationship("User", back_populates="groups")
     group = db.relationship("Group", back_populates="members")
 
     def __repr__(self):
-        return f"<GroupMember user={self.user_id} group={self.group_id}>"
+        return f"<GroupMember u:{self.user_id} g:{self.group_id}>"

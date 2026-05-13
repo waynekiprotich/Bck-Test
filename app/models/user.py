@@ -11,7 +11,6 @@ class Institution(db.Model):
     type = db.Column(db.Enum("University", "Bootcamp", name="institution_type"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # One institution to many users
     users = db.relationship("User", back_populates="institution", lazy="dynamic")
 
     def __repr__(self):
@@ -33,11 +32,12 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
+    # relations
     institution = db.relationship("Institution", back_populates="users")
     submissions = db.relationship("Submission", back_populates="user", cascade="all, delete-orphan")
     groups = db.relationship("GroupMember", back_populates="user", cascade="all, delete-orphan")
     notifications = db.relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    
     sent_requests = db.relationship(
         "FriendRequest",
         foreign_keys="FriendRequest.sender_id",
@@ -50,21 +50,22 @@ class User(db.Model):
         back_populates="receiver",
         cascade="all, delete-orphan",
     )
-    # Groups this user created (admin)
+    
+    # track which groups this user is an admin of
     created_groups = db.relationship(
         "Group",
         foreign_keys="Group.admin_id",
         back_populates="admin",
     )
 
-    # Password helpers
+    # password hashing
     def set_password(self, raw_password):
         self.password_hash = generate_password_hash(raw_password)
 
     def check_password(self, raw_password):
         return check_password_hash(self.password_hash, raw_password)
 
-    # Rank calculation 
+    # dynamic rank updates
     def calculate_rank(self):
         if self.points <= 200:
             self.rank_tier = "Beginner"
@@ -76,4 +77,4 @@ class User(db.Model):
             self.rank_tier = "Elite"
 
     def __repr__(self):
-        return f"<User {self.email}>"
+        return f"<User {self.email} | pts: {self.points}>"
