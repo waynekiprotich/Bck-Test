@@ -10,7 +10,7 @@ users_bp = Blueprint("users", __name__, url_prefix="/users")
 @users_bp.get("/profile")
 @jwt_required()
 def get_profile():
-    """Return the logged-in user's full profile."""
+    # grab the current logged-in user's data for the settings or profile page
     user_id = get_jwt_identity()
     user = User.query.get_or_404(user_id)
     return user_schema.jsonify(user), 200
@@ -19,12 +19,11 @@ def get_profile():
 @users_bp.put("/profile")
 @jwt_required()
 def update_profile():
-    """Update the logged-in user's editable fields."""
     user_id = get_jwt_identity()
     user = User.query.get_or_404(user_id)
     data = request.get_json(silent=True) or {}
 
-    # Only allow updating safe fields
+    # validation check: don't let them set a name that's too short or too long
     if "name" in data:
         name = data["name"].strip()
         if len(name) < 2 or len(name) > 80:
@@ -40,6 +39,7 @@ def update_profile():
     if "institution_id" in data:
         user.institution_id = data["institution_id"]
 
+    # save changes to the database
     db.session.commit()
     return user_schema.jsonify(user), 200
 
@@ -47,9 +47,9 @@ def update_profile():
 @users_bp.get("/<int:user_id>")
 @jwt_required()
 def get_user(user_id):
-    """Return a public profile for any user by ID."""
     user = User.query.get_or_404(user_id)
-    # Return a limited view (exclude private fields like email)
+    
+    # public profile view: we skip the email and other private fields for safety
     return jsonify({
         "id": user.id,
         "name": user.name,

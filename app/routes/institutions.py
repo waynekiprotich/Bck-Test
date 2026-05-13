@@ -7,6 +7,7 @@ institutions_bp = Blueprint("institutions", __name__, url_prefix="/institutions"
 
 @institutions_bp.get("/")
 def get_institutions():
-    """Return all institutions. Public — used to populate the signup dropdown."""
+    # fetch all schools/bootcamps so the signup page can show them in the dropdown
     institutions = Institution.query.order_by(Institution.name).all()
+    
     return institutions_schema.jsonify(institutions), 200

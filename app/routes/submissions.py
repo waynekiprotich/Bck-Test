@@ -16,19 +16,9 @@ submissions_bp = Blueprint("submissions", __name__)
 @submissions_bp.post("/submit-code")
 @jwt_required()
 def submit_code():
-    """
-    Submit code for a challenge.
-    1. Validate request
-    2. Create a Submission row (status=Running)
-    3. Run against all test cases via Piston
-    4. Score and update submission
-    5. Award points to user
-    6. Send notification
-    7. Return result
-    """
     user_id = get_jwt_identity()
 
-    # Rate limit: max 10 submissions per minute per user
+    # stop users from spamming the piston api (max 10 tries per minute)
     if rate_limit(f"submit:{user_id}", max_calls=10, window_seconds=60):
         return jsonify({"error": "Too many submissions. Please wait a moment."}), 429
 
@@ -37,7 +27,7 @@ def submit_code():
     language = data.get("language", "").lower()
     code = data.get("code", "").strip()
 
-    # Basic field validation
+    # verify we have everything we need to run the code
     if not challenge_id:
         return jsonify({"error": "challenge_id is required."}), 400
     if language not in ["python", "javascript"]:
@@ -51,7 +41,7 @@ def submit_code():
     if not test_cases:
         return jsonify({"error": "This challenge has no test cases yet."}), 400
 
-    # Create submission record before running (so the user can see it pending)
+    # save the submission row as 'Running' so the user doesn't think it's stuck if Piston is slow
     sub = Submission(
         user_id=user_id,
         challenge_id=challenge_id,
@@ -63,15 +53,15 @@ def submit_code():
     db.session.add(sub)
     db.session.commit()
 
-    # Run evaluation (calls Piston for each test case)
+    # trigger the evaluation service to run against Piston
     result = evaluate_submission(sub, challenge, test_cases)
     db.session.commit()
 
-    # Award points
+    # add the points to the user's profile
     user = User.query.get(user_id)
     update_user_points(user, result["score"])
 
-    # Notify user
+    # send a notification to the user's dashboard with their results
     notify(
         user_id=user_id,
         ntype="submission_result",
@@ -88,7 +78,7 @@ def submit_code():
 @submissions_bp.get("/results")
 @jwt_required()
 def get_results():
-    """Return the logged-in user's submission history (paginated)."""
+    # fetch the user's past attempts (paginated so the history page loads fast)
     user_id = get_jwt_identity()
     query = (
         Submission.query
@@ -101,9 +91,11 @@ def get_results():
 @submissions_bp.get("/results/<int:submission_id>")
 @jwt_required()
 def get_result(submission_id):
-    """Return a single submission. Users can only view their own."""
     user_id = get_jwt_identity()
     sub = Submission.query.get_or_404(submission_id)
+    
+    # check that the user isn't trying to peek at someone else's code
     if sub.user_id != user_id:
         return jsonify({"error": "Forbidden — this is not your submission."}), 403
+        
     return submission_schema.jsonify(sub), 200

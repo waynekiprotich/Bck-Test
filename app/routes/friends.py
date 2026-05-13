@@ -13,7 +13,7 @@ friends_bp = Blueprint("friends", __name__, url_prefix="/friends")
 @friends_bp.post("/request")
 @jwt_required()
 def send_request():
-    """Send a friend request to another user."""
+    # grab the sender's id directly from their active jwt token
     sender_id = get_jwt_identity()
     data = request.get_json(silent=True) or {}
     receiver_id = data.get("receiver_id")
@@ -31,7 +31,7 @@ def send_request():
 @friends_bp.put("/<int:request_id>/status")
 @jwt_required()
 def update_status(request_id):
-    """Accept or reject a pending friend request. Only the receiver may do this."""
+    # frontend should pass either 'Accepted' or 'Rejected' in the body
     user_id = get_jwt_identity()
     data = request.get_json(silent=True) or {}
     new_status = data.get("status", "")
@@ -51,11 +51,10 @@ def update_status(request_id):
 @friends_bp.get("/")
 @jwt_required()
 def list_friends():
-    """Return all accepted friends as user profile objects."""
     user_id = get_jwt_identity()
     accepted = get_friends(user_id)
 
-    # Return the "other" user from each FriendRequest
+    # figure out which person in the relationship is the "other" user
     friends_list = []
     for req in accepted:
         other = req.receiver if req.sender_id == user_id else req.sender

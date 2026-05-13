@@ -14,7 +14,7 @@ leaderboard_bp = Blueprint("leaderboard", __name__, url_prefix="/leaderboard")
 @leaderboard_bp.get("/")
 @jwt_required()
 def global_leaderboard():
-    """All users ranked by total points (paginated)."""
+    # standard global ranking based on total points accumulated
     query = get_global_leaderboard_query()
     return jsonify(paginate(query, users_schema)), 200
 
@@ -22,33 +22,40 @@ def global_leaderboard():
 @leaderboard_bp.get("/groups")
 @jwt_required()
 def groups_leaderboard():
-    """All groups ranked by sum of members' points."""
+    # rank groups by adding up the points of everyone in them
     results = get_group_leaderboard()
-    data = [
+    
+    leaderboard_data = [
         {
-            "group": group_schema.dump(group),
-            "total_points": int(total_points),
-            "member_count": int(member_count),
+            "group": group_schema.dump(g),
+            "total_points": int(pts),
+            "member_count": int(count),
         }
-        for group, total_points, member_count in results
+        for g, pts, count in results
     ]
-    return jsonify({"data": data, "count": len(data)}), 200
+    
+    return jsonify({
+        "data": leaderboard_data, 
+        "count": len(leaderboard_data)
+    }), 200
 
 
 @leaderboard_bp.get("/weekly/<int:week_number>")
 @jwt_required()
 def weekly_leaderboard(week_number):
-    """Users ranked by best score on a specific weekly challenge."""
+    # filter rankings for a specific weekly challenge event
     results, weekly = get_weekly_leaderboard(week_number)
-    data = [
+    
+    rankings = [
         {
-            "user": user_schema.dump(user),
-            "best_score": int(best_score),
+            "user": user_schema.dump(u),
+            "best_score": int(score),
         }
-        for user, best_score in results
+        for u, score in results
     ]
+    
     return jsonify({
         "week_number": weekly.week_number,
         "challenge_id": weekly.challenge_id,
-        "data": data,
+        "data": rankings,
     }), 200

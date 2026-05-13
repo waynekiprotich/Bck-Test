@@ -10,7 +10,7 @@ groups_bp = Blueprint("groups", __name__, url_prefix="/groups")
 @groups_bp.post("/")
 @jwt_required()
 def create():
-    """Create a new group. The creator is automatically the admin and a member."""
+    # allow users to create their own groups (they become the admin automatically)
     user_id = get_jwt_identity()
     data = request.get_json(silent=True) or {}
 
@@ -27,7 +27,7 @@ def create():
 @groups_bp.get("/")
 @jwt_required()
 def list_groups():
-    """Return all groups the current user belongs to."""
+    # get the list of groups the logged-in user has joined
     user_id = get_jwt_identity()
     user_groups = get_user_groups(user_id)
     return groups_schema.jsonify(user_groups), 200
@@ -36,9 +36,10 @@ def list_groups():
 @groups_bp.post("/join")
 @jwt_required()
 def join():
-    """Join a group using an invite code."""
     user_id = get_jwt_identity()
     data = request.get_json(silent=True) or {}
+    
+    # normalize the code to uppercase to prevent casing errors
     invite_code = data.get("invite_code", "").strip().upper()
 
     if not invite_code:
@@ -54,6 +55,6 @@ def join():
 @groups_bp.get("/<int:group_id>")
 @jwt_required()
 def get_group(group_id):
-    """Return a group with all its members."""
+    # fetch group details including the member list via the schema
     group = Group.query.get_or_404(group_id)
     return group_schema.jsonify(group), 200
