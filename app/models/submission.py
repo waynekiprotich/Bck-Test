@@ -27,8 +27,8 @@ class Submission(db.Model):
     code = db.Column(db.Text, nullable=False)
     stdout = db.Column(db.Text)
     stderr = db.Column(db.Text)
-    execution_time = db.Column(db.Float)       # seconds
-    memory_used = db.Column(db.Float)          # MB
+    execution_time = db.Column(db.Float)      
+    memory_used = db.Column(db.Float)       
     status = db.Column(db.String(30), default="Pending", nullable=False)
     score = db.Column(db.Integer, default=0)
     passed_tests = db.Column(db.Integer, default=0)

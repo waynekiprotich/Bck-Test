@@ -2,7 +2,6 @@ import requests
 
 PISTON_URL = "https://emkc.org/api/v2/piston/execute"
 
-# Map our language names to Piston's language + version identifiers
 LANG_MAP = {
     "python": {
         "language": "python",
@@ -18,12 +17,10 @@ LANG_MAP = {
 def run_code(language: str, code: str, stdin: str = "") -> dict:
     """
     Send code to the Piston API and return the execution result.
-
     Args:
         language: "python" or "javascript"
         code:     The student's source code as a string
         stdin:    The test case input to feed via standard input
-
     Returns a dict with keys:
         stdout  — program output
         stderr  — error output (if any)
@@ -40,9 +37,9 @@ def run_code(language: str, code: str, stdin: str = "") -> dict:
         "version": lang_cfg["version"],
         "files": [{"content": code}],
         "stdin": stdin or "",
-        "run_timeout": 5000,       # 5 seconds max runtime
-        "compile_timeout": 10000,  # 10 seconds max compile
-        "run_memory_limit": 128,   # 128 MB
+        "run_timeout": 5000,     
+        "compile_timeout": 10000,  
+        "run_memory_limit": 128,  
     }
 
     try:

@@ -18,7 +18,7 @@ def get_group_leaderboard():
     Uses a subquery to aggregate per-group, then joins to Group.
     Returns a list of (Group, total_points, member_count) tuples.
     """
-    # Subquery: for each group, sum member points + count members
+    # Subquery (for each group, sum member points + count members)
     group_scores = (
         db.session.query(
             GroupMember.group_id,
@@ -30,7 +30,7 @@ def get_group_leaderboard():
         .subquery()
     )
 
-    # Main query: join groups with the aggregated subquery
+    # Main query (join groups with the aggregated subquery)
     results = (
         db.session.query(
             Group,

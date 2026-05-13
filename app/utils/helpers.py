@@ -16,9 +16,9 @@ def slugify(text: str) -> str:
         slugify("Valid Parentheses!") -> "valid-parentheses"
     """
     text = text.lower().strip()
-    text = re.sub(r"[^\w\s-]", "", text)      # remove non-word chars
-    text = re.sub(r"[\s_]+", "-", text)        # spaces/underscores -> hyphens
-    text = re.sub(r"-+", "-", text)            # collapse multiple hyphens
+    text = re.sub(r"[^\w\s-]", "", text)      
+    text = re.sub(r"[\s_]+", "-", text)        
+    text = re.sub(r"-+", "-", text)          
     return text
 
 

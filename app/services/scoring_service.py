@@ -6,7 +6,6 @@ def evaluate_submission(submission, challenge, test_cases):
     """
     Run the submission against all test cases via Piston.
     Updates the submission object in-place.
-
     Returns a result dict with final status, score, and per-test details.
     """
     passed = 0
@@ -42,16 +41,15 @@ def evaluate_submission(submission, challenge, test_cases):
             "passed": tc_status == "Accepted",
             "status": tc_status,
             "is_hidden": tc.is_hidden,
-            # Never reveal expected output for hidden tests
             "expected": expected if not tc.is_hidden else None,
             "actual": actual if not tc.is_hidden else None,
         })
 
-    # ── Calculate score ───────────────────────────────────────────────
+    # Calculate score
     ratio = passed / total if total > 0 else 0
     score = int(ratio * challenge.points_reward)
 
-    # Weekly bonus: full marks on the active weekly challenge = +50 pts
+    # Weekly bonus
     from app.models.challenge import WeeklyChallenge
     is_weekly = WeeklyChallenge.query.filter_by(
         challenge_id=challenge.id, is_active=True
@@ -59,7 +57,7 @@ def evaluate_submission(submission, challenge, test_cases):
     if is_weekly and passed == total and total > 0:
         score += 50
 
-    # ── Determine final status ────────────────────────────────────────
+    # Determine final status 
     if last_stderr:
         final_status = "Runtime Error"
     elif passed == total and total > 0:
@@ -67,7 +65,7 @@ def evaluate_submission(submission, challenge, test_cases):
     else:
         final_status = "Wrong Answer"
 
-    # ── Write results back onto the submission object ──────────────────
+    # Write results back onto the submission object
     submission.status = final_status
     submission.score = score
     submission.passed_tests = passed

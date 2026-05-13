@@ -11,7 +11,7 @@ class Institution(db.Model):
     type = db.Column(db.Enum("University", "Bootcamp", name="institution_type"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # One institution -> many users
+    # One institution to many users
     users = db.relationship("User", back_populates="institution", lazy="dynamic")
 
     def __repr__(self):
@@ -50,21 +50,21 @@ class User(db.Model):
         back_populates="receiver",
         cascade="all, delete-orphan",
     )
-    # Groups this user created (as admin)
+    # Groups this user created (admin)
     created_groups = db.relationship(
         "Group",
         foreign_keys="Group.admin_id",
         back_populates="admin",
     )
 
-    # ── Password helpers ──────────────────────────────────────────────
+    # Password helpers
     def set_password(self, raw_password):
         self.password_hash = generate_password_hash(raw_password)
 
     def check_password(self, raw_password):
         return check_password_hash(self.password_hash, raw_password)
 
-    # ── Rank calculation ──────────────────────────────────────────────
+    # Rank calculation 
     def calculate_rank(self):
         if self.points <= 200:
             self.rank_tier = "Beginner"

@@ -8,7 +8,7 @@ from app.models.friend import FriendRequest
 from app.models.notification import Notification
 
 
-# ─── Institution ──────────────────────────────────────────────────────────────
+#Institution
 
 class InstitutionSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -18,7 +18,7 @@ class InstitutionSchema(ma.SQLAlchemyAutoSchema):
     type = fields.Str(validate=validate.OneOf(["University", "Bootcamp"]))
 
 
-# ─── User ─────────────────────────────────────────────────────────────────────
+# User
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -43,7 +43,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     institution = ma.Nested(InstitutionSchema, only=("id", "name", "type"), dump_only=True)
 
 
-# ─── Test Case ────────────────────────────────────────────────────────────────
+# Test Case 
 
 class TestCaseSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -60,7 +60,7 @@ class TestCaseAdminSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-# ─── Challenge ────────────────────────────────────────────────────────────────
+# Challenge 
 
 class ChallengeSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -77,7 +77,7 @@ class ChallengeSchema(ma.SQLAlchemyAutoSchema):
     test_cases = ma.Nested(TestCaseSchema, many=True, dump_only=True)
 
 
-# ─── Weekly Challenge ─────────────────────────────────────────────────────────
+# Weekly Challenge 
 
 class WeeklyChallengeSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -87,7 +87,7 @@ class WeeklyChallengeSchema(ma.SQLAlchemyAutoSchema):
     challenge = ma.Nested(ChallengeSchema, dump_only=True)
 
 
-# ─── Submission ───────────────────────────────────────────────────────────────
+# Submission
 
 class SubmissionSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -108,7 +108,7 @@ class SubmissionSchema(ma.SQLAlchemyAutoSchema):
     challenge = ma.Nested(ChallengeSchema, only=("id", "title", "difficulty"), dump_only=True)
 
 
-# ─── Group ────────────────────────────────────────────────────────────────────
+# Group 
 
 class GroupMemberSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -131,7 +131,7 @@ class GroupSchema(ma.SQLAlchemyAutoSchema):
     admin = ma.Nested(UserSchema, only=("id", "name"), dump_only=True)
 
 
-# ─── Friend Request ───────────────────────────────────────────────────────────
+# Friend Request 
 
 class FriendRequestSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -143,7 +143,7 @@ class FriendRequestSchema(ma.SQLAlchemyAutoSchema):
     status = fields.Str(validate=validate.OneOf(["Pending", "Accepted", "Rejected"]))
 
 
-# ─── Notification ─────────────────────────────────────────────────────────────
+# Notification
 
 class NotificationSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -151,7 +151,7 @@ class NotificationSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-# ─── Singleton instances used across routes ───────────────────────────────────
+# Singleton instances used across routes
 
 institution_schema = InstitutionSchema()
 institutions_schema = InstitutionSchema(many=True)

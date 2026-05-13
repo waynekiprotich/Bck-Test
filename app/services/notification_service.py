@@ -5,7 +5,6 @@ from app.models.notification import Notification
 def notify(user_id: int, ntype: str, message: str) -> Notification:
     """
     Create and persist a notification for a user.
-
     Args:
         user_id: The recipient user's ID
         ntype:   Notification type e.g. "friend_request", "submission_result", "rank_up"

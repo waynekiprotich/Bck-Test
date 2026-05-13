@@ -14,7 +14,7 @@ def create_group(admin_id: int, data: dict) -> Group:
         admin_id=admin_id,
     )
     db.session.add(group)
-    db.session.flush()  # get group.id before committing
+    db.session.flush() 
 
     # Admin is automatically a member
     member = GroupMember(user_id=admin_id, group_id=group.id)

@@ -15,7 +15,6 @@ class FriendRequest(db.Model):
     )
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Must specify foreign_keys because both FKs point to the same table
     sender = db.relationship(
         "User",
         foreign_keys=[sender_id],

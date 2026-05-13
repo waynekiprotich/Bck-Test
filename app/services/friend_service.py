@@ -11,7 +11,6 @@ def send_friend_request(sender_id: int, receiver_id: int) -> FriendRequest:
     if sender_id == receiver_id:
         raise ValueError("You cannot send a friend request to yourself.")
 
-    # Block if a pending or accepted request already exists in either direction
     existing = FriendRequest.query.filter(
         (
             (FriendRequest.sender_id == sender_id) &

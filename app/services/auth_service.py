@@ -15,18 +15,18 @@ def register_user(data: dict) -> dict:
     Raises ValidationError if input is invalid.
     Raises ValueError if email is already registered.
     """
-    # 1. Validate with schema (raises ValidationError on bad input)
+    # Validate with schema 
     errors = user_schema.validate(data)
     if errors:
         raise ValidationError(errors)
 
     email = data.get("email", "").lower().strip()
 
-    # 2. Guard duplicate email
+    # Guard duplicate email
     if check_email_exists(email):
         raise ValueError("An account with this email already exists.")
 
-    # 3. Build user — never store the raw password
+    # Build user — never store the raw password
     user = User(
         name=data["name"].strip(),
         email=email,
@@ -53,7 +53,6 @@ def login_user(data: dict) -> dict:
 
     user = User.query.filter_by(email=email).first()
 
-    # Use a generic message — never hint which field is wrong
     if not user or not user.check_password(password):
         raise ValueError("Invalid email or password.")
 

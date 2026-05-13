@@ -25,7 +25,6 @@ class Group(db.Model):
 
 
 class GroupMember(db.Model):
-    """Junction table — one row per (user, group) pair."""
     __tablename__ = "group_members"
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
