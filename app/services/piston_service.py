@@ -2,6 +2,7 @@ import requests
 
 PISTON_URL = "https://emkc.org/api/v2/piston/execute"
 
+# map our frontend language names to the exact versions Piston expects
 LANG_MAP = {
     "python": {
         "language": "python",
@@ -15,34 +16,24 @@ LANG_MAP = {
 
 
 def run_code(language: str, code: str, stdin: str = "") -> dict:
-    """
-    Send code to the Piston API and return the execution result.
-    Args:
-        language: "python" or "javascript"
-        code:     The student's source code as a string
-        stdin:    The test case input to feed via standard input
-    Returns a dict with keys:
-        stdout  — program output
-        stderr  — error output (if any)
-        code    — exit code (0 = success)
-        time    — execution time in seconds
-    """
     if language not in LANG_MAP:
         raise ValueError(f"Unsupported language: {language}. Use 'python' or 'javascript'.")
 
     lang_cfg = LANG_MAP[language]
 
+    # securely execute the user's code using the external piston api
     payload = {
         "language": lang_cfg["language"],
         "version": lang_cfg["version"],
         "files": [{"content": code}],
         "stdin": stdin or "",
-        "run_timeout": 5000,     
-        "compile_timeout": 10000,  
-        "run_memory_limit": 128,  
+        "run_timeout": 5000,      # ms
+        "compile_timeout": 10000, # ms
+        "run_memory_limit": 128,  # mb
     }
 
     try:
+        # give the request 15 seconds before we assume it's stuck and give up
         resp = requests.post(PISTON_URL, json=payload, timeout=15)
         resp.raise_for_status()
         data = resp.json()

@@ -4,13 +4,11 @@ from app.services.notification_service import notify
 
 
 def send_friend_request(sender_id: int, receiver_id: int) -> FriendRequest:
-    """
-    Send a friend request from sender to receiver.
-    Raises ValueError if invalid (self-request or duplicate).
-    """
+    # prevent users from friending themselves
     if sender_id == receiver_id:
         raise ValueError("You cannot send a friend request to yourself.")
 
+    # check both directions to see if a relationship already exists
     existing = FriendRequest.query.filter(
         (
             (FriendRequest.sender_id == sender_id) &
@@ -29,6 +27,7 @@ def send_friend_request(sender_id: int, receiver_id: int) -> FriendRequest:
     db.session.add(req)
     db.session.commit()
 
+    # alert the receiver
     notify(
         user_id=receiver_id,
         ntype="friend_request",
@@ -38,12 +37,9 @@ def send_friend_request(sender_id: int, receiver_id: int) -> FriendRequest:
 
 
 def update_friend_status(request_id: int, user_id: int, new_status: str) -> FriendRequest:
-    """
-    Accept or reject a friend request.
-    Only the receiver may change the status.
-    """
     req = FriendRequest.query.get_or_404(request_id)
 
+    # security check: make sure the person accepting is actually the receiver
     if req.receiver_id != user_id:
         raise PermissionError("Only the recipient can accept or reject a friend request.")
 
@@ -63,7 +59,7 @@ def update_friend_status(request_id: int, user_id: int, new_status: str) -> Frie
 
 
 def get_friends(user_id: int):
-    """Return all accepted FriendRequest rows involving this user."""
+    # get all active friendships where the user is either the sender or receiver
     return FriendRequest.query.filter(
         (
             (FriendRequest.sender_id == user_id) |

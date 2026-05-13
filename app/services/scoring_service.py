@@ -3,11 +3,6 @@ from app.extensions import db
 
 
 def evaluate_submission(submission, challenge, test_cases):
-    """
-    Run the submission against all test cases via Piston.
-    Updates the submission object in-place.
-    Returns a result dict with final status, score, and per-test details.
-    """
     passed = 0
     total = len(test_cases)
     last_stdout = ""
@@ -45,19 +40,20 @@ def evaluate_submission(submission, challenge, test_cases):
             "actual": actual if not tc.is_hidden else None,
         })
 
-    # Calculate score
+    # figure out how many points they get based on their pass ratio
     ratio = passed / total if total > 0 else 0
     score = int(ratio * challenge.points_reward)
 
-    # Weekly bonus
+    # give them an extra 50 points if they beat the active weekly challenge
     from app.models.challenge import WeeklyChallenge
     is_weekly = WeeklyChallenge.query.filter_by(
         challenge_id=challenge.id, is_active=True
     ).first()
+    
     if is_weekly and passed == total and total > 0:
         score += 50
 
-    # Determine final status 
+    # figure out the overall status for the submission
     if last_stderr:
         final_status = "Runtime Error"
     elif passed == total and total > 0:
@@ -65,7 +61,7 @@ def evaluate_submission(submission, challenge, test_cases):
     else:
         final_status = "Wrong Answer"
 
-    # Write results back onto the submission object
+    # save the results back to the db model
     submission.status = final_status
     submission.score = score
     submission.passed_tests = passed
@@ -84,7 +80,7 @@ def evaluate_submission(submission, challenge, test_cases):
 
 
 def update_user_points(user, score: int):
-    """Add score to the user's total and recalculate their rank tier."""
+    # only update if they actually earned points, then recalculate rank
     if score > 0:
         user.points += score
         user.calculate_rank()

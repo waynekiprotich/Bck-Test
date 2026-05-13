@@ -10,23 +10,18 @@ def check_email_exists(email: str) -> bool:
 
 
 def register_user(data: dict) -> dict:
-    """
-    Validate input, create a new User, and return a JWT + user object.
-    Raises ValidationError if input is invalid.
-    Raises ValueError if email is already registered.
-    """
-    # Validate with schema 
+    # validate incoming json against the marshmallow schema
     errors = user_schema.validate(data)
     if errors:
         raise ValidationError(errors)
 
     email = data.get("email", "").lower().strip()
 
-    # Guard duplicate email
+    # prevent duplicate signups
     if check_email_exists(email):
         raise ValueError("An account with this email already exists.")
 
-    # Build user — never store the raw password
+    # create the user (making sure to hash the password!)
     user = User(
         name=data["name"].strip(),
         email=email,
@@ -39,20 +34,18 @@ def register_user(data: dict) -> dict:
     db.session.add(user)
     db.session.commit()
 
+    # generate jwt for immediate login
     token = create_access_token(identity=user.id)
     return {"token": token, "user": user_schema.dump(user)}
 
 
 def login_user(data: dict) -> dict:
-    """
-    Verify email + password and return a JWT + user object.
-    Raises ValueError on invalid credentials.
-    """
     email = data.get("email", "").lower().strip()
     password = data.get("password", "")
 
     user = User.query.filter_by(email=email).first()
 
+    # use a generic error so we don't leak which part was wrong
     if not user or not user.check_password(password):
         raise ValueError("Invalid email or password.")
 

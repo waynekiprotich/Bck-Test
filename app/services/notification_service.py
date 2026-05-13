@@ -3,13 +3,7 @@ from app.models.notification import Notification
 
 
 def notify(user_id: int, ntype: str, message: str) -> Notification:
-    """
-    Create and persist a notification for a user.
-    Args:
-        user_id: The recipient user's ID
-        ntype:   Notification type e.g. "friend_request", "submission_result", "rank_up"
-        message: Human-readable notification text
-    """
+    # create a new notification for a specific event (like a rank up or friend request)
     notif = Notification(
         user_id=user_id,
         type=ntype,
@@ -22,7 +16,7 @@ def notify(user_id: int, ntype: str, message: str) -> Notification:
 
 
 def get_user_notifications(user_id: int):
-    """Return the 50 most recent notifications for a user."""
+    # only grab the 50 most recent so we don't overload the frontend
     return (
         Notification.query
         .filter_by(user_id=user_id)
@@ -33,13 +27,12 @@ def get_user_notifications(user_id: int):
 
 
 def mark_read(notification_id: int, user_id: int) -> Notification:
-    """
-    Mark a notification as read.
-    Raises PermissionError if the notification doesn't belong to user_id.
-    """
     notif = Notification.query.get_or_404(notification_id)
+    
+    # prevent users from trying to mark someone else's notifications as read
     if notif.user_id != user_id:
         raise PermissionError("You cannot update another user's notification.")
+    
     notif.is_read = True
     db.session.commit()
     return notif

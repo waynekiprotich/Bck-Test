@@ -7,18 +7,11 @@ from app.models.challenge import WeeklyChallenge
 
 
 def get_global_leaderboard_query():
-    """Return a SQLAlchemy query of users ordered by points descending."""
     return User.query.order_by(User.points.desc())
 
 
 def get_group_leaderboard():
-    """
-    Return groups ranked by the sum of their members' points.
-
-    Uses a subquery to aggregate per-group, then joins to Group.
-    Returns a list of (Group, total_points, member_count) tuples.
-    """
-    # Subquery (for each group, sum member points + count members)
+    # step 1: create a subquery to sum up all the members' points per group
     group_scores = (
         db.session.query(
             GroupMember.group_id,
@@ -30,7 +23,7 @@ def get_group_leaderboard():
         .subquery()
     )
 
-    # Main query (join groups with the aggregated subquery)
+    # step 2: join the actual Group table to our subquery to get the group names
     results = (
         db.session.query(
             Group,
@@ -45,14 +38,11 @@ def get_group_leaderboard():
 
 
 def get_weekly_leaderboard(week_number: int):
-    """
-    Return users ranked by their best score on the active weekly challenge.
-    Only accepted submissions within the weekly window count.
-    """
     weekly = WeeklyChallenge.query.filter_by(
         week_number=week_number, is_active=True
     ).first_or_404()
 
+    # only count submissions that actually passed during the active week
     best_scores = (
         db.session.query(
             Submission.user_id,
